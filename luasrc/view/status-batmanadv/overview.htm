@@ -30,7 +30,6 @@ else
         table.insert(nexthops,o[x])
         x = x + 2
       end
-      util.dumptable(o,10)
       table.insert(originators,{o[1],o[2],o[4],o[5],nexthops})
     end
   end
@@ -132,14 +131,14 @@ end
             </td>
           </tr>
         <% else %>
-          <% local rowstyle = 0 %
+          <% local rowstyle = 0 %>
           <% for i,k in ipairs(originators) do %>
              <tr class="cbi-section-table-row cbi-rowstyle-<%=rowstyle + 1%>">
                 <td class="cbi-section-table-cell"><%=k[1]%></td>
                 <td class="cbi-section-table-cell"><%=k[2]%></td>
                 <td class="cbi-section-table-cell"><%=k[3]%></td>
                 <td class="cbi-section-table-cell"><%=k[4]%></td>
-                <td class="cbi-section-table-cell"><%=#k[5]%>
+                <td class="cbi-section-table-cell">
                   <% if #k[5] > 0 then%>
                     <% for j,l in ipairs(k[5]) do%>
                       <%=l%><br />
@@ -148,7 +147,7 @@ end
                 </td>
               </td>
             </tr>
-            <% rowstyle = *rowstyle + 1) % 2%>
+            <% rowstyle = (rowstyle + 1) % 2 %>
           <% end %>
         <% end %>
       </table>
