@@ -14,8 +14,8 @@ local vis_mode = util.trim(sys.exec("/usr/sbin/batctl vm"))
 local interfaces = util.trim(sys.exec("/usr/sbin/batctl if"))
 local originators = {}
 
---local originoutput = util.split(sys.exec("/usr/sbin/batctl o"))
-local originoutput = util.split(sys.exec("cat batctl.out"))
+local originoutput = util.split(sys.exec("/usr/sbin/batctl o"))
+--local originoutput = util.split(sys.exec("cat batctl.out"))
 
 
 if # originoutput >= 3 and util.trim(originoutput[3]) == "No batman nodes in range ..." then
