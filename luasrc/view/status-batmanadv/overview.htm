@@ -1,0 +1,158 @@
+<%
+local util = require "luci.util"
+local sys  = require "luci.sys"
+
+local version = util.trim(sys.exec("/usr/sbin/batctl -v"))
+local interval = util.trim(sys.exec("/usr/sbin/batctl it"))
+local gw_mode = util.trim(sys.exec("/usr/sbin/batctl gw"))
+local bonding = util.trim(sys.exec("/usr/sbin/batctl b"))
+local fragmentation = util.trim(sys.exec("/usr/sbin/batctl f"))
+local aggregation = util.trim(sys.exec("/usr/sbin/batctl ag"))
+local vis_mode = util.trim(sys.exec("/usr/sbin/batctl vm"))
+
+
+local interfaces = util.trim(sys.exec("/usr/sbin/batctl if"))
+local originators = {}
+
+--local originoutput = util.split(sys.exec("/usr/sbin/batctl o"))
+local originoutput = util.split(sys.exec("cat batctl.out"))
+
+
+if # originoutput >= 3 and util.trim(originoutput[3]) == "No batman nodes in range ..." then
+  originators = {}
+else
+  for i,k in ipairs(originoutput) do
+    if i >= 3 then
+      local o = util.split(k,"[\]\[ ]+",nil,true)
+      local x = 7
+      local nexthops = {}
+      while x <= #o do
+        table.insert(nexthops,o[x])
+        x = x + 2
+      end
+      util.dumptable(o,10)
+      table.insert(originators,{o[1],o[2],o[4],o[5],nexthops})
+    end
+  end
+end
+
+%>
+
+<%+header%>
+<div class="cbi-map">
+  <h2><a id="content" name="content">B.A.T.M.A.N. Advanced <%:Overview%></a></h2>
+  <fieldset class="cbi-section">
+    <legend><%:Status%></legend>
+    <div class="cbi-section-node">
+      <div class="cbi-value">
+        <label class="cbi-value-title"><%:Interfaces%></label>
+        <div class="cbi-value-field">
+            <a href="<%=luci.dispatcher.build_url("freifunk","olsr","interfaces")%>"><%=nr_ifaces%></a>
+            <%=interfaces%>
+        </div>
+      </div>
+
+      <div class="cbi-value">
+        <label class="cbi-value-title"><%:Originators%></label>
+        <div class="cbi-value-field">
+            <%=# originators%>
+        </div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="cbi-section">
+    <legend><%:Configuration%></legend>
+    <div class="cbi-section-node">                                                   
+      <div class="cbi-value">
+      <label class="cbi-value-title"><%:Version%></label>  
+        <div class="cbi-value-field"><%=version%></div>                                                                       
+      </div> 
+
+      <div class="cbi-value">
+        <label class="cbi-value-title"><%:Originator%> <%:Interval%></label>
+        <div class="cbi-value-field">
+            <a href=""><%=interval%></a>
+        </div>
+      </div>
+
+      <div class="cbi-value">
+        <label class="cbi-value-title"><%:Gateway Mode%></label>
+        <div class="cbi-value-field">
+            <a href=""><%=gw_mode%></a>
+        </div>                                                                  
+      </div>
+
+      <div class="cbi-value">
+        <label class="cbi-value-title"><%:VIS Mode:%></label>
+        <div class="cbi-value-field">
+            <a href=""><%=vis_mode%></a>
+        </div>
+      </div>
+
+      <div class="cbi-value">
+        <label class="cbi-value-title"><%:Fragmentation%></label>
+        <div class="cbi-value-field">
+            <a href=""><%=fragmentation%></a>
+        </div>
+      </div>
+
+      <div class="cbi-value">
+        <label class="cbi-value-title"><%:Aggregation%></label>
+        <div class="cbi-value-field">
+            <a href=""><%=aggregation%></a>
+          </div>                                                                  
+      </div>
+
+      <div class="cbi-value">
+        <label class="cbi-value-title"><%:Bonding%></label>
+        <div class="cbi-value-field">
+            <a href=""><%=bonding%></a>
+        </div>
+      </div>
+    </div>                                                                           
+  </fieldset>
+  <fieldset class="cbi-section">
+    <legend><%:Active Originators%></legend>
+    <div class="cbi-section-node">
+      <table class="cbi-section-table">
+        <tr class="cbi-section-table-titles">
+          <th class="cbi-section-table-cell"><%:Originator%></th>
+          <th class="cbi-section-table-cell"><%:last-seen%></th>
+          <th class="cbi-section-table-cell"><%:Nexthop%></th>
+          <th class="cbi-section-table-cell"><%:outgoingIF%></th>
+          <th class="cbi-section-table-cell"><%:Potential nexthops%></th>
+        </tr>
+        <% if # originators == 0 then%>
+          <tr class="cbi-section-table-row cbi-rowstyle-1">
+            <td class="cbi-section-table-cell" colspan="5">
+              <br/>
+              <em><%:No batman nodes in range%></em>
+              <br/>
+            </td>
+          </tr>
+        <% else %>
+          <% local rowstyle = 0 %
+          <% for i,k in ipairs(originators) do %>
+             <tr class="cbi-section-table-row cbi-rowstyle-<%=rowstyle + 1%>">
+                <td class="cbi-section-table-cell"><%=k[1]%></td>
+                <td class="cbi-section-table-cell"><%=k[2]%></td>
+                <td class="cbi-section-table-cell"><%=k[3]%></td>
+                <td class="cbi-section-table-cell"><%=k[4]%></td>
+                <td class="cbi-section-table-cell"><%=#k[5]%>
+                  <% if #k[5] > 0 then%>
+                    <% for j,l in ipairs(k[5]) do%>
+                      <%=l%><br />
+                    <% end %>
+                  <% end %>
+                </td>
+              </td>
+            </tr>
+            <% rowstyle = *rowstyle + 1) % 2%>
+          <% end %>
+        <% end %>
+      </table>
+    </div>
+  </fieldset>
+</div>  
+<%+footer%>
